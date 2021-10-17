@@ -11,6 +11,7 @@ namespace netutils
 		: writeIndex(0), readIndex(0)
 	{
 		this->data = new char[size];
+		this->length = size;
 	}
 
 	void Buffer::WriteInt(int value)

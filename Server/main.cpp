@@ -1,3 +1,5 @@
+#define WIN32_LEAN_AND_MEAN
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
@@ -108,6 +110,7 @@ int main(void)
     DWORD bytesReceived;
     SOCKET acceptSocket = INVALID_SOCKET; // Will hold a new connection
 
+    printf("Starting server...\n");
     while (true)
     {
         timeval timeoutValue = { 0 };
@@ -174,5 +177,13 @@ int main(void)
             }
         }
     }
+
+    for (Client* client : clients)
+    {
+        delete client;
+    }
+
+    clients.clear();
+
 	return 0;
 }
