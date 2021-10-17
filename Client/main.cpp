@@ -19,6 +19,10 @@
 
 int main(void)
 {
+	std::string name;
+	std::cout << "Please enter your name: ";
+	std::cin >> name;
+
 	WSADATA wsaData;
 
 	struct addrinfo* infoResult = NULL;			// Holds the address information of our server
@@ -85,10 +89,40 @@ int main(void)
 		return 1;
 	}
 
+	// TODO: Send packet to server with our client name that we entered
 	printf("Connection successful!\n");
 
-	std::string input;
-	std::cin >> input;
+	//TODO: Listen for incoming data from server (MUST BE NON-BLOCKING)
 
+	std::string input;
+	while (true)
+	{
+		std::cout << "Enter Message: ";
+		std::cin >> input;
+
+		// TODO: Transform our entered message into out "Message" packet and send it
+		result = send(connectionSocket, input.c_str(), (int) strlen(input.c_str()), 0);
+		if (result == SOCKET_ERROR)
+		{
+			printf("Failed to send message: %d\n", WSAGetLastError());
+			closesocket(connectionSocket);
+			WSACleanup();
+			return 1;
+		}
+	}
+
+	// Shut down the connection 
+	result = shutdown(connectionSocket, SD_SEND);
+	if (result == SOCKET_ERROR)
+	{
+		printf("shutdown failed with error: %d\n", WSAGetLastError());
+		closesocket(connectionSocket);
+		WSACleanup();
+		return 1;
+	}
+
+	// Cleanup
+	closesocket(connectionSocket);
+	WSACleanup();
 	return 0;
 }
