@@ -12,6 +12,7 @@
 #include <map>
 
 #include "Client.h"
+#include "Packets.h"
 
 class Server
 {
@@ -23,15 +24,21 @@ public:
 
 	void Start();
 
+	void SendToClient(Client* client, char* dataToSend, int dataLength);
+
 	void BroadcastMessage(char* dataToSend, int dataLength);
 
 	void BroadcastMessageExcludeClient(Client* exclude, char* dataToSend, int dataLength);
 
-	void joinRoom(Client* name, std::string roomname);
+	void JoinRoom(Client* name, std::string roomname, netutils::PacketJoinRoom& packet);
 
-	void leaveRoom(Client* name, std::string roomname);
+	void LeaveRoom(Client* name, std::string roomname, netutils::PacketLeaveRoom& packet);
 
-	void BroadCastToRoom(std::string roomName, char* dataToSend, int dataLength);
+	void BroadcastToRoom(std::string roomName, char* dataToSend, int dataLength);
+
+	void BroadcastToRoomExcludeClient(std::string roomName, Client* exclude, char* dataToSend, int dataLength);
+
+	std::string FindClientRoom(Client* client);
 
 private:
 	void ShutDown();
@@ -41,7 +48,8 @@ private:
 	SOCKET acceptSocket; // Will hold a new connection
 
 	//create a map with rooms and clients ?
-	std::map<std::string, std::vector<Client*> > rooms;
+	std::map<std::string, std::vector<Client*>> rooms;
+	std::map<Client*, std::string> clientToRoomMap; // Holds what room a client is in
 
 	std::vector<Client*> clients; // Holds our connected clients
 };

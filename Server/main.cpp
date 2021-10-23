@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include "Server.h"
+#include "PacketManager.h"
 
 #pragma comment (lib, "Ws2_32.lib")
 
@@ -27,6 +28,9 @@ int main(void)
     }
 
     server.Start();
+
+    PacketManager::GetInstance()->CleanUp();
+    delete PacketManager::GetInstance();
 
     WSACleanup();
 	return 0;

@@ -1,7 +1,7 @@
 #include "PacketManager.h"
-#include "PacketSendMessageHandler.h"
-#include "PacketLeaveRoomHandler.h"
+#include "PacketReceiveMessageHandler.h"
 #include "PacketJoinRoomHandler.h"
+#include "PacketLeaveRoomHandler.h"
 
 #include <iostream>
 
@@ -12,7 +12,7 @@ PacketManager* PacketManager::GetInstance()
 	if (PacketManager::instance == NULL)
 	{
 		PacketManager::instance = new PacketManager();
-		instance->handlerMap.insert(std::make_pair(0, new PacketSendMessageHandler()));
+		instance->handlerMap.insert(std::make_pair(1, new PacketReceiveMessageHandler()));
 		instance->handlerMap.insert(std::make_pair(2, new PacketJoinRoomHandler()));
 		instance->handlerMap.insert(std::make_pair(3, new PacketLeaveRoomHandler()));
 	}
@@ -20,12 +20,12 @@ PacketManager* PacketManager::GetInstance()
 	return instance;
 }
 
-void PacketManager::HandlePacket(Server& server, Client* client, unsigned int packetType)
+void PacketManager::HandlePacket(Client& client, const SOCKET& serverSocket, unsigned int packetType)
 {
 	std::map<unsigned int, IPackethandler*>::iterator it = this->handlerMap.find(packetType);
 	if (it != this->handlerMap.end())
 	{
-		it->second->HandleOnServer(server, client);
+		it->second->HandleOnClient(client, serverSocket);
 	}
 	else
 	{

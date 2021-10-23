@@ -2,6 +2,8 @@
 #include "Packets.h"
 #include "PacketManager.h"
 
+#include <iostream>
+
 Server::Server(PCSTR port)
 {
     this->port = port;
@@ -99,8 +101,6 @@ void Server::Start()
 
     FD_SET readSet;
 
-    char buf[4096];
-
     printf("Server started!\n");
     while (true)
     {
@@ -183,6 +183,7 @@ void Server::Start()
 
                 int packetHeader = client->buffer.ReadInt();
                 PacketManager::GetInstance()->HandlePacket(*this, client, packetHeader);
+                client->buffer.Clear();
             }
         }
     }
@@ -216,6 +217,16 @@ void Server::BroadcastMessage(char* dataToSend, int dataLength)
     }
 }
 
+void Server::SendToClient(Client* client, char* dataToSend, int dataLength)
+{
+    int result;
+    result = send(client->socket, dataToSend, dataLength, 0);
+    if (result == SOCKET_ERROR)
+    {
+        printf("send() has failed!");
+    }
+}
+
 void Server::BroadcastMessageExcludeClient(Client* exclude, char* dataToSend, int dataLength)
 {
     int result;
@@ -236,7 +247,7 @@ void Server::BroadcastMessageExcludeClient(Client* exclude, char* dataToSend, in
     }
 }
 
-void Server::BroadCastToRoom(std::string roomName, char* dataToSend, int dataLength) {
+void Server::BroadcastToRoom(std::string roomName, char* dataToSend, int dataLength) {
 
        std::map<std::string,std::vector<Client*>>::iterator it =  this->rooms.find(roomName);
 
@@ -244,6 +255,7 @@ void Server::BroadCastToRoom(std::string roomName, char* dataToSend, int dataLen
            printf("Room was not Found %s\n",roomName);
            return;
        }
+
        int result;
        for (Client* client : it->second) {
 
@@ -259,23 +271,104 @@ void Server::BroadCastToRoom(std::string roomName, char* dataToSend, int dataLen
        
 }
 
-//std::map<std::string, std::vector<Client*> > rooms;
-void Server::joinRoom(Client* name, std::string roomname) {
-    rooms[roomname].push_back(name);
+void Server::BroadcastToRoomExcludeClient(std::string roomName, Client* exclude, char* dataToSend, int dataLength)
+{
+    std::map<std::string, std::vector<Client*>>::iterator it = this->rooms.find(roomName);
+
+    if (it == rooms.end()) {
+        printf("Room was not Found %s\n", roomName);
+        return;
+    }
+
+    int result;
+    for (Client* client : it->second) 
+    {
+        if (client == exclude)
+        {
+            continue;
+        }
+
+        result = send(client->socket, dataToSend, dataLength, 0);
+        if (result == SOCKET_ERROR)
+        {
+            printf("send() has failed!");
+            continue;
+        }
+
+
+    }//for loop
 }
 
-void Server::leaveRoom(Client* name, std::string roomname) {
 
+//std::map<std::string, std::vector<Client*> > rooms;
+void Server::JoinRoom(Client* name, std::string roomname, netutils::PacketJoinRoom& packet) 
+{
+    name->name = packet.name;
+    std::string currentRoom = FindClientRoom(name);
+    if (currentRoom != "")
+    {
+        netutils::PacketLeaveRoom leavePacket;
+        leavePacket.header.packetType = 3;
+        leavePacket.roomNameLength = currentRoom.size();
+        leavePacket.roomName = currentRoom;
+        leavePacket.namelength = name->name.size();
+        leavePacket.name = name->name;
+        
+        LeaveRoom(name, currentRoom, leavePacket);
+    }
+
+    rooms[roomname].push_back(name);
+    this->clientToRoomMap.insert(std::make_pair(name, roomname));
+    std::cout << name->name << " has joined room " << roomname << std::endl;
+
+    netutils::Buffer buffer(packet.GetSize());
+
+    buffer.WriteInt(packet.header.packetType);
+    buffer.WriteInt(packet.roomNameLength);
+    buffer.WriteString(packet.roomName);
+    buffer.WriteInt(packet.nameLength);
+    buffer.WriteString(packet.name);
+
+    BroadcastToRoom(roomname, buffer.data, buffer.Length());
+}
+
+void Server::LeaveRoom(Client* name, std::string roomname, netutils::PacketLeaveRoom& packet)
+{
     std::map<std::string, std::vector<Client*>>::iterator it = this->rooms.find(roomname);
 
-    if (it != rooms.end()) {
+    if (it != rooms.end()) 
+    {
         std::vector<Client*>::iterator client = std::find(it->second.begin(), it->second.end(), name);
-        if (client != it->second.end()) {
+        if (client != it->second.end()) 
+        {
             it->second.erase(client);
         }//if inside iterator
    
     }
 
+    this->clientToRoomMap.erase(name);
+    std::cout << name->name << " has left room " << roomname << std::endl;
 
+    // creating a buffer to broadcast a msg 
+    netutils::Buffer buffer(packet.GetSize());
 
+    buffer.WriteInt(packet.header.packetType);
+    buffer.WriteInt(packet.roomNameLength);
+    buffer.WriteString(packet.roomName);
+    buffer.WriteInt(packet.namelength);
+    buffer.WriteString(packet.name);
+
+    SendToClient(name, buffer.data, buffer.Length());
+    BroadcastToRoom(roomname, buffer.data, buffer.Length());
+}
+
+std::string Server::FindClientRoom(Client* client)
+{
+    std::map<Client*, std::string>::iterator it = this->clientToRoomMap.find(client);
+    if (it != this->clientToRoomMap.end())
+    {
+        return it->second;
+    }
+
+    return "";
 }

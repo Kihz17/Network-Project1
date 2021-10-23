@@ -30,10 +30,10 @@
     <ClCompile Include="PacketSendMessageHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RoomJoinHandler.cpp">
+    <ClCompile Include="PacketJoinRoomHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LeaveRoomHandler.cpp">
+    <ClCompile Include="PacketLeaveRoomHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,10 +53,10 @@
     <ClInclude Include="PacketSendMessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RoomJoinHandler.h">
+    <ClInclude Include="PacketJoinRoomHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LeaveRoomHandler.h">
+    <ClInclude Include="PacketLeaveRoomHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

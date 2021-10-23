@@ -19,7 +19,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PacketJoinRoomHandler.cpp" />
+    <ClCompile Include="PacketJoinRoomHandler.h" />
+    <ClCompile Include="PacketLeaveRoomHandler.cpp" />
+    <ClCompile Include="PacketManager.cpp" />
+    <ClCompile Include="PacketReceiveMessageHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="IPacketHandler.h" />
+    <ClInclude Include="PacketLeaveRoomHandler.h" />
+    <ClInclude Include="PacketManager.h" />
+    <ClInclude Include="PacketReceiveMessageHandler.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -3,14 +3,14 @@
 #include "Packets.h"
 
 
-class JoinRoomHandler : public IPackethandler
+class PacketJoinRoomHandler : public IPackethandler
 {
 public:
 	virtual void HandleOnServer(Server& server, Client* sender);
 
 private:
 	friend class PacketManager;
-	JoinRoomHandler();
+	PacketJoinRoomHandler();
 };
 
 

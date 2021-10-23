@@ -13,7 +13,6 @@ void PacketSendMessageHandler::HandleOnServer(Server& server, Client* sender)
 	std::string message = sender->buffer.ReadString(messageLength);
 
 	netutils::PacketReceiveMessage receivePacket;
-	receivePacket.header.packetType = 1;
 	receivePacket.nameLength = sender->name.size();
 	receivePacket.senderName = sender->name;
 	receivePacket.messageLength = messageLength;
@@ -26,7 +25,7 @@ void PacketSendMessageHandler::HandleOnServer(Server& server, Client* sender)
 	buffer.WriteInt(receivePacket.messageLength);
 	buffer.WriteString(receivePacket.message);
 
-	server.BroadcastMessageExcludeClient(sender, buffer.data, buffer.Length()); // Broadcast message to all clients except for the sender
+	server.BroadcastToRoomExcludeClient(server.FindClientRoom(sender), sender, buffer.data, buffer.Length()); // Broadcast message to all clients except for the sender
 }
 
 

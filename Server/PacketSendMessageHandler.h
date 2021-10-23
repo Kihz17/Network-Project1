@@ -1,5 +1,6 @@
-#include "PacketHandler.h"
+#pragma once 
 
+#include "PacketHandler.h"
 
 class PacketSendMessageHandler : public IPackethandler
 {
