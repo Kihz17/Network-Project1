@@ -22,8 +22,14 @@ public:
 	bool SendToServer(char* data, int dataLength);
 
 	netutils::Buffer buffer;
+
 private:
 	void ShutDown();
+
+	bool running;
+
+	std::string currentRoom;
+	std::string name;
 
 	PCSTR serverIp;
 	PCSTR serverPort;

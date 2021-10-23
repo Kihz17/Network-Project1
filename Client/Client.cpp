@@ -19,6 +19,7 @@ Client::Client(PCSTR serverIp, PCSTR port)
 	this->serverIp = serverIp;
 	this->serverPort = port;
 	this->serverSocket = INVALID_SOCKET;
+	this->running = false;
 }
 
 Client::~Client()
@@ -99,19 +100,17 @@ bool Client::Initialize()
 
 void Client::Start()
 {
-	std::string name;
 	std::cout << "Please enter your name: ";
-	std::getline(std::cin, name);
+	std::getline(std::cin, this->name);
 
-	std::string room;
 	std::cout << "Please enter the room you'd like to enter: ";
-	std::getline(std::cin, room);
+	std::getline(std::cin, this->currentRoom);
 
 	netutils::PacketJoinRoom packetJoinRoom;
-	packetJoinRoom.roomNameLength = room.size();
-	packetJoinRoom.roomName = room;
-	packetJoinRoom.nameLength = name.size();
-	packetJoinRoom.name = name;
+	packetJoinRoom.roomNameLength = this->currentRoom.size();
+	packetJoinRoom.roomName = this->currentRoom;
+	packetJoinRoom.nameLength = this->name.size();
+	packetJoinRoom.name = this->name;
 
 	this->buffer.WriteInt(packetJoinRoom.header.packetType);
 	this->buffer.WriteInt(packetJoinRoom.roomNameLength);
@@ -132,10 +131,10 @@ void Client::Start()
 
 	FD_SET readSet;
 
-	bool running = true;
+	this->running = true;
 	bool sendEnterMessage = true;
 	bool roomChange = false;
-	while (running)
+	while (this->running)
 	{
 		if (sendEnterMessage)
 		{
@@ -161,28 +160,58 @@ void Client::Start()
 				if (roomChange)
 				{
 					roomChange = false;
-					netutils::PacketJoinRoom packet;
-					packet.roomNameLength = msg.size();
-					packet.roomName = msg;
-					packet.nameLength = name.size();
-					packet.name = name;
 
-					netutils::Buffer buffer(packet.GetSize());
-					buffer.WriteInt(packet.header.packetType);
-					buffer.WriteInt(packet.roomNameLength);
-					buffer.WriteString(packet.roomName);
-					buffer.WriteInt(packet.nameLength);
-					buffer.WriteString(packet.name);
-
-					running = this->SendToServer(buffer.data, buffer.Length());
-					if (!running)
+					if (msg == "leave")
 					{
-						break;
-					}
+						netutils::PacketLeaveRoom packet;
+						packet.roomNameLength = this->currentRoom.size();
+						packet.roomName = this->currentRoom;
+						packet.namelength = this->name.size();
+						packet.name = this->name;
 
-					std::cout << std::endl;
-					std::cout << std::endl;
-					sendEnterMessage = true;
+						netutils::Buffer buffer(packet.GetSize());
+						buffer.WriteInt(packet.header.packetType);
+						buffer.WriteInt(packet.roomNameLength);
+						buffer.WriteString(packet.roomName);
+						buffer.WriteInt(packet.namelength);
+						buffer.WriteString(packet.name);
+
+						this->running = this->SendToServer(buffer.data, buffer.Length());
+						if (!this->running)
+						{
+							break;
+						}
+
+						std::cout << std::endl;
+						std::cout << std::endl;
+						this->running = false; // Stop client
+					}
+					else 
+					{ 
+						netutils::PacketJoinRoom packet;
+						packet.roomNameLength = msg.size();
+						packet.roomName = msg;
+						packet.nameLength = name.size();
+						packet.name = name;
+
+						netutils::Buffer buffer(packet.GetSize());
+						buffer.WriteInt(packet.header.packetType);
+						buffer.WriteInt(packet.roomNameLength);
+						buffer.WriteString(packet.roomName);
+						buffer.WriteInt(packet.nameLength);
+						buffer.WriteString(packet.name);
+
+						this->running = this->SendToServer(buffer.data, buffer.Length());
+						if (!this->running)
+						{
+							break;
+						}
+
+						this->currentRoom = packet.roomName;
+						std::cout << std::endl;
+						std::cout << std::endl;
+						sendEnterMessage = true;
+					}
 				}
 				else
 				{
@@ -195,8 +224,8 @@ void Client::Start()
 					buffer.WriteInt(packet.messageLength);
 					buffer.WriteString(packet.message);
 		
-					running = this->SendToServer(buffer.data, buffer.Length());
-					if (!running)
+					this->running = this->SendToServer(buffer.data, buffer.Length());
+					if (!this->running)
 					{
 						break;
 					}
@@ -231,7 +260,7 @@ void Client::Start()
 		total = select(0, &readSet, NULL, NULL, &timeoutValue);
 		if (total == SOCKET_ERROR) {
 			printf("select() has failed! %d\n", WSAGetLastError());
-			running = false;
+			this->running = false;
 			break;
 		}
 
@@ -249,7 +278,7 @@ void Client::Start()
 				if (WSAGetLastError() == 10054)
 				{
 					printf("Disconnected from server!\n");
-					running = false;
+					this->running = false;
 					break;
 				}
 
@@ -257,7 +286,7 @@ void Client::Start()
 			else if (bytesReceived == 0)
 			{
 				printf("Disconnected from server!\n");
-				running = false;
+				this->running = false;
 				break;
 			}
 
