@@ -223,3 +223,47 @@ void Server::BroadcastMessageExcludeClient(Client* exclude, char* dataToSend, in
         }
     }
 }
+
+void Server::BroadCastToRoom(std::string roomName, char* dataToSend, int dataLength) {
+
+       std::map<std::string,std::vector<Client*>>::iterator it =  this->rooms.find(roomName);
+
+       if (it == rooms.end()) {
+           printf("Room was not Found %s\n",roomName);
+           return;
+       }
+       int result;
+       for (Client* client : it->second) {
+
+           result = send(client->socket, dataToSend, dataLength, 0);
+           if (result == SOCKET_ERROR)
+           {
+               printf("send() has failed!");
+               continue;
+           }
+
+       
+       }//for loop
+       
+}
+
+//std::map<std::string, std::vector<Client*> > rooms;
+void Server::joinRoom(Client* name, std::string roomname) {
+    rooms[roomname].push_back(name);
+}
+
+void Server::leaveRoom(Client* name, std::string roomname) {
+
+    std::map<std::string, std::vector<Client*>>::iterator it = this->rooms.find(roomname);
+
+    if (it != rooms.end()) {
+        std::vector<Client*>::iterator client = std::find(it->second.begin(), it->second.end(), name);
+        if (client != it->second.end()) {
+            it->second.erase(client);
+        }//if inside iterator
+   
+    }
+
+
+
+}

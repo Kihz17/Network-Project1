@@ -27,12 +27,21 @@ public:
 
 	void BroadcastMessageExcludeClient(Client* exclude, char* dataToSend, int dataLength);
 
+	void joinRoom(Client* name, std::string roomname);
+
+	void leaveRoom(Client* name, std::string roomname);
+
+	void BroadCastToRoom(std::string roomName, char* dataToSend, int dataLength);
+
 private:
 	void ShutDown();
 
 	PCSTR port;
 	SOCKET connectionSocket; // This socket is used to listen for incoming connections
 	SOCKET acceptSocket; // Will hold a new connection
+
+	//create a map with rooms and clients ?
+	std::map<std::string, std::vector<Client*> > rooms;
 
 	std::vector<Client*> clients; // Holds our connected clients
 };
