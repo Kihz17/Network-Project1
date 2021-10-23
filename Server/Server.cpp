@@ -161,15 +161,15 @@ void Server::Start()
                 bytesReceived = recv(client->socket, client->buffer.data, client->buffer.Length(), flags); // Recieve the data (THIS IS BLOCKING, which is we we only call it when the socket has new data)
                 if (bytesReceived == SOCKET_ERROR)
                 {
-                    printf("recv() has failed!");
+                    printf("recv() has failed!\n");
 
-                    if (WSAGetLastError() == 10054) {
+                    //if (WSAGetLastError() == 10054) {
                         // remove client from vector array 
                         printf("Client disconnected!\n");
                         this->clients[i] = clients[this->clients.size() - 1];
                         this->clients.pop_back();
                         continue;
-                    }
+                    //}
 
                 }
                 else if (bytesReceived == 0) // Client left
@@ -252,7 +252,7 @@ void Server::BroadcastToRoom(std::string roomName, char* dataToSend, int dataLen
        std::map<std::string,std::vector<Client*>>::iterator it =  this->rooms.find(roomName);
 
        if (it == rooms.end()) {
-           printf("Room was not Found %s\n",roomName);
+           printf("Room was not Found %s\n", roomName.c_str());
            return;
        }
 
