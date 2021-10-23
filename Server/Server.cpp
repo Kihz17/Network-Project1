@@ -149,8 +149,10 @@ void Server::Start()
             }
         }
 
-        for (Client* client : this->clients)
+        for (int i = this->clients.size() - 1; i >= 0; i--)
         {
+            Client* client = clients[i];
+
             // Check if we are in the read set (AKA: Check if socket sent some new data)
             if (FD_ISSET(client->socket, &readSet))
             {
@@ -160,14 +162,24 @@ void Server::Start()
                 if (bytesReceived == SOCKET_ERROR)
                 {
                     printf("recv() has failed!");
-                    break;
+
+                    if (WSAGetLastError() == 10054) {
+                        // remove client from vector array 
+                        printf("Client disconnected!\n");
+                        this->clients[i] = clients[this->clients.size() - 1];
+                        this->clients.pop_back();
+                        continue;
+                    }
+
                 }
                 else if (bytesReceived == 0) // Client left
                 {
-                    printf("Client disconnected!");
+                    // remove client from vector array 
+                    printf("Client disconnected!\n");
+                    this->clients[i] = clients[this->clients.size() - 1];
+                    this->clients.pop_back();
+                    continue;
                 }
-
-                printf("We got a message!\n");
 
                 int packetHeader = client->buffer.ReadInt();
                 PacketManager::GetInstance()->HandlePacket(*this, client, packetHeader);
