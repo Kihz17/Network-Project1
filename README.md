@@ -1,5 +1,9 @@
 # NetWorkClass-GDP1-
 (TeamWork) Network Class GDP1 Course Fanshawe
+TEAM:
+- Mitchell Dawdy
+- Omar Almasri 
+- Nima Azarnoush
 
 BUILD INSTRUCTIONS:
 - Build project "NetworkUtils" and retreive the .lib file from $(SolutionDir)x64\Debug
@@ -7,6 +11,8 @@ BUILD INSTRUCTIONS:
 
 EXECUTION INSTRUCTIONS:
 - Ensure that the project is run using Debug x64
+- Ensure that you run the "Server" project first
+- Once the server is running, you can start as many "Client" instances that you'd like.
 
 COMMANDS:
 - When in a chat room, press 'esc' at any time to switch rooms
