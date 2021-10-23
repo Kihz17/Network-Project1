@@ -46,37 +46,21 @@ namespace netutils
 
 	void Buffer::WriteString(std::string value)
 	{
-		if (value.size() > maxStringSize)
-		{
-			std::cout << "String was too large for our buffer!" << std::endl;
-			return;
-		}
-
 		const char* cStr = value.c_str();
-		std::size_t shift = 0;
 		for (int i = 0; i < value.size(); i++)
 		{
-			this->InsertByte(writeIndex + i, (char) (cStr[i] >> shift));
-			shift += 8;
+			this->InsertByte(writeIndex + i, (char) cStr[i]);
 		}
 
-		writeIndex += maxStringSize;
+		writeIndex += value.size();
 	}
 
 	void Buffer::WriteString(std::size_t index, std::string value)
 	{
-		if (value.size() > maxStringSize)
-		{
-			std::cout << "String was too large for our buffer!" << std::endl;
-			return;
-		}
-
 		const char* cStr = value.c_str();
-		std::size_t shift = 0;
 		for (int i = 0; i < value.size(); i++)
 		{
-			this->InsertByte(index + i, (char)(cStr[i] >> shift));
-			shift += 8;
+			this->InsertByte(index + i, (char) cStr[i]);
 		}
 	}
 
@@ -114,16 +98,16 @@ namespace netutils
 		return value;
 	}
 
-	std::string Buffer::ReadString()
+	std::string Buffer::ReadString(std::size_t length)
 	{
-		std::string value(&this->data[readIndex], this->data[readIndex + maxStringSize]);
-		readIndex += maxStringSize;
+		std::string value(&this->data[readIndex], &this->data[readIndex + length]);
+		readIndex += length;
 		return value;
 	}
 
-	std::string Buffer::ReadString(std::size_t index)
+	std::string Buffer::ReadString(std::size_t index, std::size_t length)
 	{
-		std::string value(&this->data[index], this->data[index + maxStringSize]);
+		std::string value(&this->data[index], this->data[index + length]);
 		return value;
 	}
 

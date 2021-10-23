@@ -1,4 +1,6 @@
 #include "Server.h"
+#include "Packets.h"
+#include "PacketManager.h"
 
 Server::Server(PCSTR port)
 {
@@ -97,6 +99,8 @@ void Server::Start()
 
     FD_SET readSet;
 
+    char buf[4096];
+
     printf("Server started!\n");
     while (true)
     {
@@ -127,7 +131,7 @@ void Server::Start()
             if (acceptSocket == INVALID_SOCKET)
             {
                 printf("Failed to accept socket! %d\n", WSAGetLastError());
-                return;
+                break;
             }
 
             // Make the newly accept socket non-blocking
@@ -153,13 +157,20 @@ void Server::Start()
                 total--;
                 DWORD flags = 0;
                 bytesReceived = recv(client->socket, client->buffer.data, client->buffer.Length(), flags); // Recieve the data (THIS IS BLOCKING, which is we we only call it when the socket has new data)
+                if (bytesReceived == SOCKET_ERROR)
+                {
+                    printf("recv() has failed!");
+                    break;
+                }
+                else if (bytesReceived == 0) // Client left
+                {
+                    printf("Client disconnected!");
+                }
 
                 printf("We got a message!\n");
-                // TODO: Read data from buffer. Will probably go something like:
-                // TODO: client->buffer.ReadShort(); This will be used to read the packet header to decide what we should do for the rest of the data
-                // TODO: Handle packet accordingly
 
-
+                int packetHeader = client->buffer.ReadInt();
+                PacketManager::GetInstance()->HandlePacket(*this, client, packetHeader);
             }
         }
     }
@@ -175,5 +186,40 @@ void Server::ShutDown()
     for (Client* client : clients)
     {
         closesocket(client->socket);
+    }
+}
+
+void Server::BroadcastMessage(char* dataToSend, int dataLength)
+{
+    int result;
+
+    for (Client* client : this->clients)
+    {
+        result = send(client->socket, dataToSend, dataLength, 0);
+        if (result == SOCKET_ERROR)
+        {
+            printf("send() has failed!");
+            continue;
+        }
+    }
+}
+
+void Server::BroadcastMessageExcludeClient(Client* exclude, char* dataToSend, int dataLength)
+{
+    int result;
+
+    for (Client* client : this->clients)
+    {
+        if (client == exclude)
+        {
+            continue;
+        }
+
+        result = send(client->socket, dataToSend, dataLength, 0);
+        if (result == SOCKET_ERROR)
+        {
+            printf("send() has failed!");
+            continue;
+        }
     }
 }

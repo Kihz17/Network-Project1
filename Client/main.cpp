@@ -7,6 +7,10 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <bitset>
+
+#include "Buffer.h"
+#include "Packets.h"
 
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 #pragma comment (lib, "Ws2_32.lib")
@@ -21,7 +25,7 @@ int main(void)
 {
 	std::string name;
 	std::cout << "Please enter your name: ";
-	std::cin >> name;
+	std::getline(std::cin, name);
 
 	WSADATA wsaData;
 
@@ -92,16 +96,26 @@ int main(void)
 	// TODO: Send packet to server with our client name that we entered
 	printf("Connection successful!\n");
 
-	//TODO: Listen for incoming data from server (MUST BE NON-BLOCKING)
+	// TODO: Listen for incoming data from server (MUST BE NON-BLOCKING)
 
 	std::string input;
 	while (true)
 	{
 		std::cout << "Enter Message: ";
-		std::cin >> input;
+		std::getline(std::cin, input);
+
+		netutils::PacketSendMessage packet;
+		packet.header.packetType = 0;
+		packet.messageLength = input.size();
+		packet.message = input;
+
+		netutils::Buffer buffer(sizeof(int) + sizeof(int) + input.size());
+		buffer.WriteInt(packet.header.packetType);
+		buffer.WriteInt(packet.messageLength);
+		buffer.WriteString(packet.message);
 
 		// TODO: Transform our entered message into out "Message" packet and send it
-		result = send(connectionSocket, input.c_str(), (int) strlen(input.c_str()), 0);
+		result = send(connectionSocket, buffer.data, buffer.Length(), 0);
 		if (result == SOCKET_ERROR)
 		{
 			printf("Failed to send message: %d\n", WSAGetLastError());

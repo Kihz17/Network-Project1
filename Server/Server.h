@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <vector>
 #include <string>
+#include <map>
 
 #include "Client.h"
 
@@ -21,6 +22,10 @@ public:
 	bool Initialize();
 
 	void Start();
+
+	void BroadcastMessage(char* dataToSend, int dataLength);
+
+	void BroadcastMessageExcludeClient(Client* exclude, char* dataToSend, int dataLength);
 
 private:
 	void ShutDown();

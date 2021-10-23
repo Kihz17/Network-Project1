@@ -25,8 +25,8 @@ namespace netutils
 		short ReadShort();
 		short ReadShort(std::size_t index);
 
-		std::string ReadString();
-		std::string ReadString(std::size_t index);
+		std::string ReadString(std::size_t length);
+		std::string ReadString(std::size_t index, std::size_t length);
 
 		int Length();
 		void Resize(std::size_t  length);
